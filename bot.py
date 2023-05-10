@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 bot_token = os.environ['bot_token']
 
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.members = True
 intents.message_content = True
 
@@ -20,8 +20,8 @@ async def on_ready():
 
 @tasks.loop(seconds=10)
 async def check_impersonators():
-    try:
-        for guild in bot.guilds:
+    for guild in bot.guilds:
+        try:
             owner = guild.owner
             owner_name = owner.display_name.lower()
             owner_nick = owner.name.lower()
@@ -31,24 +31,20 @@ async def check_impersonators():
 
             owner_name_regex = re.compile(owner_name_format, re.IGNORECASE)
             owner_nick_regex = re.compile(owner_nick_format, re.IGNORECASE)
-
-            print(owner_name_regex)
-
+ 
             for member in guild.members:
                 member_name = member.name.lower()
                 member_nick = member.display_name.lower()
-
-                print(member_name, member_nick)
-
-                if member != owner and (str(member) == str(owner) or
+                
+                if member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages) and (str(member) == str(owner) or
                                         owner_name_regex.search(member_name) or
                                         owner_nick_regex.search(member_name) or
                                         owner_name_regex.search(member_nick) or
                                         owner_nick_regex.search(member_nick)):
 
                     message = f"Impersonator kicked:\nUsername: {member}\nTag: {member.discriminator}\n Nickname: {member.display_name}"
+
                     await member.kick(reason='Impersonating the server owner')
-                    
                     channel_name = "impersonation-alerts"
 
                     channel = discord.utils.get(guild.channels, name=channel_name)
@@ -63,7 +59,8 @@ async def check_impersonators():
                         await new_channel.send(message)
                     else:
                         await channel.send(message)
-    except Exception as e:
-        print('some error happened', e)
+        except Exception as e:
+            print('some error happened: ', e)
+
               
 bot.run(bot_token)
