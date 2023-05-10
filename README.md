@@ -16,7 +16,8 @@ You can use this URL to invite the bot in your server [Invite](https://discord.c
 2. Set Up Bot Permissions: After inviting the bot, ensure that the bot has a role with sufficient permissions to kick members. 
 3. The bot's role should have higher hierarchy than the roles of potential impersonators, meaning most members. Go to server settings --> roles --> drag the role of the bot "impostersecurity" to the top below admin role. (drag ahove by clicking the left button as shown below)
 
-![imageeeee](https://github.com/r3sist-uniq/ImposterSecurityBot/assets/72573738/790dee05-d4a2-4b20-8a87-607cd3aacdc0)
+
+![imageeeee](https://github.com/r3sist-uniq/ImposterSecurityBot/assets/72573738/462e2332-7875-4d68-9e03-4434b6d74c1f)
 
 ## How it works
 
