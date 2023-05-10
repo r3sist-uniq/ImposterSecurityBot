@@ -26,12 +26,12 @@ async def check_impersonators():
             owner_name = owner.display_name.lower()
             owner_nick = owner.name.lower()
             
-            owner_name_format = r"{}".format(".*".join(list(owner_name)))
-            owner_nick_format = r"{}".format(".*".join(list(owner_nick)))
+            owner_name_format = generate_regex_pattern(owner_name)
+            owner_nick_format = generate_regex_pattern(owner_nick)
 
             owner_name_regex = re.compile(owner_name_format, re.IGNORECASE)
             owner_nick_regex = re.compile(owner_nick_format, re.IGNORECASE)
- 
+            
             for member in guild.members:
                 member_name = member.name.lower()
                 member_nick = member.display_name.lower()
@@ -64,3 +64,8 @@ async def check_impersonators():
 
               
 bot.run(bot_token)
+
+def generate_regex_pattern(name):
+    pattern = '^[-_ ]?' + ''.join(f'{c}[-_ ]?' for c in name.lower()) + '[-_ ]?$'
+    return pattern
+
