@@ -3,7 +3,14 @@ from discord.ext import commands, tasks
 import re, os
 from dotenv import load_dotenv
 
+
+def generate_regex_pattern(name):
+    pattern = '^[-_ *]?' + ''.join(f'{c}[-_ *]?' for c in name.lower()) + '[-_ *]?$'
+    return pattern
 load_dotenv()
+
+ok = generate_regex_pattern('aman')
+print(ok )
 bot_token = os.environ['bot_token']
 
 intents = discord.Intents.all()
@@ -43,9 +50,9 @@ async def check_impersonators():
                                         owner_nick_regex.search(member_nick)):
 
                     message = f"Impersonator kicked:\nUsername: {member}\nTag: {member.discriminator}\n Nickname: {member.display_name}"
-
+                    print(message)
                     await member.kick(reason='Impersonating the server owner')
-                    channel_name = "impersonation-alerts"
+                    channel_name = "impersonation-alerts"   
 
                     channel = discord.utils.get(guild.channels, name=channel_name)
                     if not channel:
@@ -65,7 +72,4 @@ async def check_impersonators():
               
 bot.run(bot_token)
 
-def generate_regex_pattern(name):
-    pattern = '^[-_ ]?' + ''.join(f'{c}[-_ ]?' for c in name.lower()) + '[-_ ]?$'
-    return pattern
 
