@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands, tasks
 import re, os
 from dotenv import load_dotenv
-
+import Levenshtein
 
 def generate_regex_pattern(name):
     pattern = '^[-_ *]?' + ''.join(f'{c}[-_ *]?' for c in name.lower()) + '[-_ *]?$'
@@ -66,6 +66,7 @@ async def check_impersonators():
                         await new_channel.send(message)
                     else:
                         await channel.send(message)
+                
         except Exception as e:
             print('some error happened: ', e)
 
