@@ -1,13 +1,9 @@
 import discord
 from discord.ext import commands, tasks
-import re, os
+import os
 from dotenv import load_dotenv
+import misc
 import Levenshtein
-import requests
-import imagehash
-from io import BytesIO
-from PIL import Image
-import util
 
 load_dotenv()
 bot_token = os.environ['bot_token']
@@ -29,9 +25,10 @@ async def check_impersonators():
     for guild in bot.guilds:
         try:
             owner = guild.owner
-            owner_name_regex, owner_nick_regex = util.owner_regex_patterns(owner=owner)
+            owner_name_regex, owner_nick_regex, owner_name, owner_nick= misc.owner_regex_patterns(owner=owner)
 
-            for member in guild.members:
+            for member in guild.members: 
+
                 member_name = member.name.lower()
                 member_nick = member.display_name.lower()
 
@@ -42,21 +39,27 @@ async def check_impersonators():
                                         owner_nick_regex.search(member_nick)):
 
                     await member.kick(reason='Impersonating the server owner')
-                    await util.alert_message(member, 'alert', guild)
+                    is_profile_same = await misc.compare_profile_pic(member, owner)
+                    await misc.alert_message(member, 'alert', guild, is_profile_same)
 
                 elif member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages) and ((Levenshtein.distance(member_name, owner_name) <= 2) or (Levenshtein.distance(member_name, owner_nick) <= 2) or (Levenshtein.distance(member_nick, owner_name) <= 2) or (Levenshtein.distance(member_nick, owner_nick) <= 2)):
 
-                    profile_same = await util.compare_profile_pic(member, owner)
-                    if profile_same == 1:
-                        await member.kick(reason='Impersonating the server owner')
+                    is_profile_same = await misc.compare_profile_pic(member, owner)
 
-                        await util.alert_message(member, 'alert', guild)
+                    if is_profile_same == 1:
+                        await member.kick(reason='Impersonating the server owner')
+                        await misc.alert_message(member, 'alert', guild, is_profile_same)
+                       
                     else:
-                        await util.alert_message(member, 'assist', guild)
+                        await misc.alert_message(member, 'assist', guild, is_profile_same)
+
+                elif member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages) and ((Levenshtein.distance(member_name, owner_name) <= 4) or (Levenshtein.distance(member_name, owner_nick) <= 4) or (Levenshtein.distance(member_nick, owner_name) <= 4) or (Levenshtein.distance(member_nick, owner_nick) <= 4)): 
+                    is_profile_same = await misc.compare_profile_pic(member, owner)
+                    await misc.alert_message(member, 'alert', guild, is_profile_same)
+
 
         except Exception as e:
             print('some error happened: ', e)
 
-              
 bot.run(bot_token)
 
