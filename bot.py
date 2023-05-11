@@ -15,14 +15,23 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 already_alerted = []
-
-
 @bot.event
 async def on_ready():
 
     print(f'Bot connected as {bot.user}')
     check_impersonators.start()
 
+@bot.event
+async def on_member_remove(member):
+    if isinstance(member, discord.Member):
+        guild = member.guild
+        async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.kick):
+            member_cache = {{'guild': guild, 'member': member}}
+            if (entry.target == member) and (member_cache in already_alerted):
+                print(f'{member.name} has been kicked.')
+                already_alerted.remove(member_cache)
+                break
+        
 @tasks.loop(seconds=10)
 async def check_impersonators():
     for guild in bot.guilds:
@@ -34,35 +43,40 @@ async def check_impersonators():
 
                 member_name = member.name.lower()
                 member_nick = member.display_name.lower()
+                member_cache =  {'guild': guild, 'member': member}
 
-                if member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages) and (str(member) == str(owner) or
+                if (member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages)) and (str(member) == str(owner) or
                                         owner_name_regex.search(member_name) or
                                         owner_nick_regex.search(member_name) or
                                         owner_name_regex.search(member_nick) or
                                         owner_nick_regex.search(member_nick)):
 
-                    await member.kick(reason='Impersonating the server owner')
                     is_profile_same = await misc.compare_profile_pic(member, owner)
+                    if member_cache in already_alerted:
+                        already_alerted.remove(member_cache)
+                    await member.kick(reason='Impersonating the server owner')
                     await misc.alert_message(member, 'alert', guild, is_profile_same)
 
                 elif member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages) and ((Levenshtein.distance(member_name, owner_name) <= 2) or (Levenshtein.distance(member_name, owner_nick) <= 2) or (Levenshtein.distance(member_nick, owner_name) <= 2) or (Levenshtein.distance(member_nick, owner_nick) <= 2)):
 
                     is_profile_same = await misc.compare_profile_pic(member, owner)
+                    
                     if is_profile_same == 1:
+                        if member_cache in already_alerted:
+                             already_alerted.remove(member_cache)
                         await member.kick(reason='Impersonating the server owner')
                         await misc.alert_message(member, 'alert', guild, is_profile_same)
-
-                       
+                        
                     else:
                         alerted_person = {'guild': guild, 'member': member}
                         if not alerted_person in already_alerted:
                             await misc.alert_message(member, 'assist', guild, is_profile_same)
                             already_alerted.append(alerted_person)
 
-                elif member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages) and ((Levenshtein.distance(member_name, owner_name) <= 4) or (Levenshtein.distance(member_name, owner_nick) <= 4) or (Levenshtein.distance(member_nick, owner_name) <= 4) or (Levenshtein.distance(member_nick, owner_nick) <= 4)): 
+                elif member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages) and ((Levenshtein.distance(member_name, owner_name) <= 3) or (Levenshtein.distance(member_name, owner_nick) <= 3) or (Levenshtein.distance(member_nick, owner_name) <= 3) or (Levenshtein.distance(member_nick, owner_nick) <= 3)): 
                     is_profile_same = await misc.compare_profile_pic(member, owner)
                     alerted_person = {'guild': guild, 'member': member}
-                    if not alerted_person in already_alerted:
+                    if not (alerted_person in already_alerted) and is_profile_same == 1:
                         await misc.alert_message(member, 'assist', guild, is_profile_same)
                         already_alerted.append(alerted_person)
 

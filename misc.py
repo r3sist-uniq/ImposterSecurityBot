@@ -31,10 +31,8 @@ async def compare_profile_pic(member, owner):
     similarity_threshold = 0.9
 
     if similarity >= similarity_threshold:
-        print("The member's profile picture matches the owner's profile picture!")
         return 1
     else:
-        print("The member's profile picture does not match the owner's profile picture.")
         return 0
 
 
@@ -62,11 +60,9 @@ async def alert_message(member,type, guild, is_profile_same):
         }          
         new_channel = await guild.create_text_channel(channel_name, overwrites=overwrites)
 
-        # await new_channel.send(message)
+        await new_channel.send(message)
     else:
-        # await channel.send(message)
-        pass
-    print(message)
+        await channel.send(message)
 
 
 def owner_regex_patterns(owner):
