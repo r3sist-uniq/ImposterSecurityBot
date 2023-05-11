@@ -14,6 +14,9 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+already_alerted = []
+
+
 @bot.event
 async def on_ready():
 
@@ -45,18 +48,23 @@ async def check_impersonators():
                 elif member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages) and ((Levenshtein.distance(member_name, owner_name) <= 2) or (Levenshtein.distance(member_name, owner_nick) <= 2) or (Levenshtein.distance(member_nick, owner_name) <= 2) or (Levenshtein.distance(member_nick, owner_nick) <= 2)):
 
                     is_profile_same = await misc.compare_profile_pic(member, owner)
-
                     if is_profile_same == 1:
                         await member.kick(reason='Impersonating the server owner')
                         await misc.alert_message(member, 'alert', guild, is_profile_same)
+
                        
                     else:
-                        await misc.alert_message(member, 'assist', guild, is_profile_same)
+                        alerted_person = {'guild': guild, 'member': member}
+                        if not alerted_person in already_alerted:
+                            await misc.alert_message(member, 'assist', guild, is_profile_same)
+                            already_alerted.append(alerted_person)
 
                 elif member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages) and ((Levenshtein.distance(member_name, owner_name) <= 4) or (Levenshtein.distance(member_name, owner_nick) <= 4) or (Levenshtein.distance(member_nick, owner_name) <= 4) or (Levenshtein.distance(member_nick, owner_nick) <= 4)): 
                     is_profile_same = await misc.compare_profile_pic(member, owner)
-                    await misc.alert_message(member, 'alert', guild, is_profile_same)
-
+                    alerted_person = {'guild': guild, 'member': member}
+                    if not alerted_person in already_alerted:
+                        await misc.alert_message(member, 'assist', guild, is_profile_same)
+                        already_alerted.append(alerted_person)
 
         except Exception as e:
             print('some error happened: ', e)
