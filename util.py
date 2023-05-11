@@ -51,7 +51,18 @@ async def alert_message(member,type, guild, ):
         }          
         new_channel = await guild.create_text_channel(channel_name, overwrites=overwrites)
 
-    
         await new_channel.send(message)
     else:
         await channel.send(message)
+
+def owner_regex_patterns(owner):
+    owner_name = owner.name.lower()
+    owner_nick = owner.display_name.lower()
+    
+    owner_name_format = util.generate_regex_pattern(owner_name)
+    owner_nick_format = util.generate_regex_pattern(owner_nick)
+
+    owner_name_regex = re.compile(owner_name_format, re.IGNORECASE)
+    owner_nick_regex = re.compile(owner_nick_format, re.IGNORECASE)
+
+    return owner_name_regex, owner_nick_regex
