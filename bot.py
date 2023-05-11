@@ -7,38 +7,7 @@ import requests
 import imagehash
 from io import BytesIO
 from PIL import Image
-
-def generate_regex_pattern(name):
-    pattern = '^[-_ *]?' + ''.join(f'{c}[-_ *]?' for c in name.lower()) + '[-_ *]?$'
-    return pattern
-
-async def compare_profile_pic(member, owner):
-
-    # Download profile pictures
-    owner_avatar_url = owner.avatar.url
-    member_avatar_url = member.avatar.url
-    owner_avatar_response = requests.get(owner_avatar_url)
-    member_avatar_response = requests.get(member_avatar_url)
-
-    # Compare profile pictures using Levenshtein distance
-    owner_avatar_image = Image.open(BytesIO(owner_avatar_response.content))
-    member_avatar_image = Image.open(BytesIO(member_avatar_response.content))
-
-    owner_avatar_hash = imagehash.phash(owner_avatar_image)
-    member_avatar_hash = imagehash.phash(member_avatar_image)
-
-    distance = Levenshtein.hamming(str(owner_avatar_hash), str(member_avatar_hash))
-    similarity = 1.0 - (distance / len(str(owner_avatar_hash)))
-
-    # Compare similarity threshold
-    similarity_threshold = 0.9
-
-    if similarity >= similarity_threshold:
-        print("The member's profile picture matches the owner's profile picture!")
-    else:
-        print("The member's profile picture does not match the owner's profile picture.")
-
-
+import util
 
 load_dotenv()
 bot_token = os.environ['bot_token']
@@ -60,11 +29,12 @@ async def check_impersonators():
     for guild in bot.guilds:
         try:
             owner = guild.owner
+            print(owner.avatar.url, guild)
             owner_name = owner.name.lower()
             owner_nick = owner.display_name.lower()
             
-            owner_name_format = generate_regex_pattern(owner_name)
-            owner_nick_format = generate_regex_pattern(owner_nick)
+            owner_name_format = util.generate_regex_pattern(owner_name)
+            owner_nick_format = util.generate_regex_pattern(owner_nick)
 
             owner_name_regex = re.compile(owner_name_format, re.IGNORECASE)
             owner_nick_regex = re.compile(owner_nick_format, re.IGNORECASE)
@@ -80,8 +50,6 @@ async def check_impersonators():
                                         owner_nick_regex.search(member_nick)):
 
                     message = f"Impersonator kicked:\nUsername: {member}\nTag: {member.discriminator}\n Nickname: {member.display_name}, {guild}, {owner_name}, {owner_nick}, {member_nick} "
-                    print(message)
-                    print('---------------')
                     await member.kick(reason='Impersonating the server owner')
                     channel_name = "impersonation-alerts"   
                     channel = discord.utils.get(guild.channels, name=channel_name)
@@ -99,9 +67,49 @@ async def check_impersonators():
                         await channel.send(message)
 
                 elif member != owner and not (member.guild_permissions.administrator or member.guild_permissions.manage_messages) and ((Levenshtein.distance(member_name, owner_name) <= 2) or (Levenshtein.distance(member_name, owner_nick) <= 2) or (Levenshtein.distance(member_nick, owner_name) <= 2) or (Levenshtein.distance(member_nick, owner_nick) <= 2)):
-                    await compare_profile_pic(member, owner)
-                    pass
-                    
+
+
+                    profile_same = await util.compare_profile_pic(member, owner)
+                    if profile_same == 1:
+                        message = f"Impersonator kicked:\nUsername: {member}\nTag: {member.discriminator}\n Nickname: {member.display_name}, {guild}, {owner_name}, {owner_nick}, {member_nick} "
+                        await member.kick(reason='Impersonating the server owner')
+                        channel_name = "impersonation-alerts"   
+                        channel = discord.utils.get(guild.channels, name=channel_name)
+
+                        message = f"Impersonator kicked:\nUsername: {member}\nTag: {member.discriminator}\n Nickname: {member.display_name}, {guild}, {owner_name}, {owner_nick}, {member_nick} "
+                        await member.kick(reason='Impersonating the server owner')
+                        channel_name = "impersonation-alerts"   
+                        channel = discord.utils.get(guild.channels, name=channel_name)
+
+                        if not channel:
+                            overwrites = {
+                                guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                                guild.me: discord.PermissionOverwrite(read_messages=True),
+                                guild.owner: discord.PermissionOverwrite(read_messages=True),
+                                guild.roles[0]: discord.PermissionOverwrite(read_messages=False)  # Set the @everyone role to not see the channel
+                            }          
+                            new_channel = await guild.create_text_channel(channel_name, overwrites=overwrites)
+                            await new_channel.send(message)
+                        else:
+                            await channel.send(message)
+                    else:
+                        message = f"I think this person is impersonating. Do you want to kick this person? :\nUsername: {member}\nTag: {member.discriminator}\n Nickname: {member.display_name}, {guild}, {owner_name}, {owner_nick}, {member_nick} "
+                        channel_name = "impersonation-assist"   
+                        channel = discord.utils.get(guild.channels, name=channel_name)
+
+                        if not channel:
+                            overwrites = {
+                                guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                                guild.me: discord.PermissionOverwrite(read_messages=True),
+                                guild.owner: discord.PermissionOverwrite(read_messages=True),
+                                guild.roles[0]: discord.PermissionOverwrite(read_messages=False)  # Set the @everyone role to not see the channel
+                            }          
+                            new_channel = await guild.create_text_channel(channel_name, overwrites=overwrites)
+                            await new_channel.send(message)
+                        else:
+                            await channel.send(message)
+                
+
         except Exception as e:
             print('some error happened: ', e)
 
