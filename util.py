@@ -30,3 +30,28 @@ async def compare_profile_pic(member, owner):
     else:
         print("The member's profile picture does not match the owner's profile picture.")
         return 0
+
+async def alert_message(member,type, guild, ):
+    
+    if type=='alert':
+        channel_name = "impersonation-alerts"   
+        message = f"Impersonator kicked:\nUsername: {member}\nTag: {member.discriminator}\n Nickname: {member.display_name}"
+    elif type =='assist':
+        channel_name = "impersonation-assist"
+        message = f"I think this person is impersonating. Do you want to kick this person? :\nUsername: {member}\nTag: {member.discriminator}\n Nickname: {member.display_name}"
+
+    channel = discord.utils.get(guild.channels, name=channel_name)
+
+    if not channel:
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            guild.me: discord.PermissionOverwrite(read_messages=True),
+            guild.owner: discord.PermissionOverwrite(read_messages=True),
+            guild.roles[0]: discord.PermissionOverwrite(read_messages=False)  # Set the @everyone role to not see the channel
+        }          
+        new_channel = await guild.create_text_channel(channel_name, overwrites=overwrites)
+
+    
+        await new_channel.send(message)
+    else:
+        await channel.send(message)
