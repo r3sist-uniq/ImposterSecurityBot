@@ -25,6 +25,8 @@ Impersonator Detection: The bot periodically (every 10 seconds) checks all the g
 
 Impersonator Kicking: If a member is identified as an impersonator (not the server owner and matches the impersonation patterns), the bot will kick the impersonator from the server and send a message to a channel named "impersonation-alerts". If the channel doesn't exist, the bot will create it with the necessary permissions.
 
+We are using the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) and the [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance) algorithms to check for the similarities between strings, and profile pictures, respectively. 
+
 ## Support and Issues
 
 If you encounter any issues or need support, feel free to contact the developer of the bot or open an issue in the bot's repository.
