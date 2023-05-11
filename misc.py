@@ -47,10 +47,13 @@ async def alert_message(member,type, guild, is_profile_same):
         message = f"Impersonator kicked:\nUsername: {member}\nTag: {member.discriminator}\n Nickname: {member.display_name}\nID= {member.id}\n Photo matches? {profile_matches}"
     elif type =='assist':
         channel_name = "impersonation-assist"
-        message = f"I think this person might be impersonating. Please check if you need to kick this person? :\nUsername: {member}\nTag: {member.discriminator}\nNickname: {member.display_name}\n ID = {member.id}\n Photo matches? {profile_matches}"
-
+        message = f"(LOW ALERT) I think this person might be impersonating. Please check if you need to kick this person? :\nUsername: {member}\nTag: {member.discriminator}\nNickname: {member.display_name}\n ID = {member.id}\n Photo matches? {profile_matches}"
+    elif type =='high-assist':
+        channel_name = "impersonation-assist"
+        message = f"(HIGH ALERT) I think this person might be impersonating. Please check if you need to kick this person? :\nUsername: {member}\nTag: {member.discriminator}\nNickname: {member.display_name}\n ID = {member.id}\n Photo matches? {profile_matches}"
     channel = discord.utils.get(guild.channels, name=channel_name)
 
+    print(message)
     if not channel:
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
