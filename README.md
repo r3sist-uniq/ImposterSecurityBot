@@ -9,7 +9,7 @@ This Discord bot is designed to automatically kick members who are impersonating
 
 ## Setup
 
-You can use this URL to invite the bot in your server [Invite](https://discord.com/api/oauth2/authorize?client_id=1104343553875914793&permissions=402655254&scope=bot)
+You can use this URL to invite the bot in your server [Invite](https://discord.com/api/oauth2/authorize?client_id=1104343553875914793&permissions=402655382&scope=bot)
 
 
 1. Invite the Bot: Use the provided URL to invite the bot to your Discord server. Make sure to give access to every permission the bot requires. 
